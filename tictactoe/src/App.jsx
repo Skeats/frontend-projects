@@ -1,35 +1,66 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [squares, setSquares] = useState(Array(9).fill(null));
+  const [status, setStatus] = useState('X');
+
+  function handleClick(index) {
+    if (squares[index] || calculateWinner(squares)) return;
+
+    const newSquares = squares.slice();
+    newSquares[index] = status;
+    setSquares(newSquares);
+    setStatus(status === 'X' ? 'O' : 'X');
+  }
+
+  function calculateWinner(squares) {
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+      const [a, b, c] = lines[i];
+      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+        return squares[a];
+      }
+    }
+    return null;
+  }
+
+  const winner = calculateWinner(squares);
+  let gameStatus;
+  if (winner) {
+    gameStatus = `Winner: ${winner}`;
+  } else {
+    gameStatus = `Next player: ${status}`;
+  }
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <h2>{gameStatus}</h2>
+      <div className="grid-container">
+        {squares.map((value, index) => (
+          <Square key={index} value={value} onClick={() => handleClick(index)} />
+        ))}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
+  );
+}
+
+function Square(props) {
+  return (
+    <button className="grid-square" onClick={props.onClick}>
+      {props.value}
+    </button>
   )
 }
 
-export default App
+export default App;
