@@ -1,17 +1,55 @@
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 import './App.css';
 
-function App() {
-  const [squares, setSquares] = useState(Array(9).fill(null));
+export default function App() {
   const [status, setStatus] = useState('X');
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const currentState = history[history.length - 1];
+
+  function handlePlay(nextSquares) {
+    setHistory([...history, nextSquares]);
+    setStatus(status === 'X' ? 'O' : 'X');
+  }
+
+  function jumpTo(step) {
+    setHistory(history.slice(0, step + 1));
+    setStatus(step % 2 === 0 ? 'X' : 'O');
+  }
+
+  const moves = history.map((_step, move) => {
+    const desc = move ? `Go to move #${move}` : 'Go to game start';
+    return (
+      <li key={move}>
+        <button onClick={() => jumpTo(move)}>{desc}</button>
+      </li>
+    );
+  });
+
+  return (
+    <>
+      <h1>Kiki&apos;s Tic Tac Toe!</h1>
+      <div className="game">
+        <Board status={status} squares={currentState} onPlay={handlePlay} />
+        <div className="game-info">
+          <h2>Game history</h2>
+          <ol>
+            {moves}
+          </ol>
+        </div>      </div>
+    </>
+  );
+}
+
+function Board(props) {
 
   function handleClick(index) {
-    if (squares[index] || calculateWinner(squares)) return;
+    if (props.squares[index] || calculateWinner(props.squares)) return;
 
-    const newSquares = squares.slice();
-    newSquares[index] = status;
-    setSquares(newSquares);
-    setStatus(status === 'X' ? 'O' : 'X');
+    const newSquares = props.squares.slice();
+    newSquares[index] = props.status;
+
+    props.onPlay(newSquares);
   }
 
   function calculateWinner(squares) {
@@ -35,25 +73,31 @@ function App() {
     return null;
   }
 
-  const winner = calculateWinner(squares);
+  const winner = calculateWinner(props.squares);
   let gameStatus;
   if (winner) {
     gameStatus = `Winner: ${winner}`;
   } else {
-    gameStatus = `Next player: ${status}`;
+    gameStatus = `Next player: ${props.status}`;
   }
 
   return (
     <>
-      <h2>{gameStatus}</h2>
+      <h2 className="game-status">{gameStatus}</h2>
       <div className="grid-container">
-        {squares.map((value, index) => (
+        {props.squares.map((value, index) => (
           <Square key={index} value={value} onClick={() => handleClick(index)} />
         ))}
       </div>
     </>
   );
 }
+
+Board.propTypes = {
+  status: PropTypes.string.isRequired,
+  squares: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onPlay: PropTypes.func.isRequired,
+};
 
 function Square(props) {
   return (
@@ -63,4 +107,7 @@ function Square(props) {
   )
 }
 
-export default App;
+Square.propTypes = {
+  value: PropTypes.string,
+  onClick: PropTypes.func.isRequired,
+};

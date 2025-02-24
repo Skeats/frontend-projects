@@ -1,10 +1,23 @@
+.game {
+  display: flex;
+  justify-content: center;
+  margin: auto;
+  flex-wrap: wrap;
+}
+
+.game-status, .game-info {
+  width: 175px;
+}
+
+.game-info {
+  text-align: left;
+}
+
 .grid-container {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  padding: 10px;
   width: 300px;
   height: 300px;
-  margin: auto;
 }
 
 .grid-square {
