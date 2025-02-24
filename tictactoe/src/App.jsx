@@ -20,8 +20,8 @@ export default function App() {
   const moves = history.map((_step, move) => {
     const desc = move ? `Go to move #${move}` : 'Go to game start';
     return (
-      <li key={move}>
-        <button onClick={() => jumpTo(move)}>{desc}</button>
+      <li className='game-info-list-item' key={move}>
+        <button className={`game-info-button ${move % 2 === 0 ? 'X' : 'O'}`} onClick={() => jumpTo(move)}>{desc}</button>
       </li>
     );
   });
@@ -36,61 +36,60 @@ export default function App() {
           <ol>
             {moves}
           </ol>
-        </div>      </div>
+        </div>
+      </div>
     </>
   );
 }
 
 function Board(props) {
+    function handleClick(index) {
+      if (props.squares[index] || calculateWinner(props.squares)) return;
 
-  function handleClick(index) {
-    if (props.squares[index] || calculateWinner(props.squares)) return;
+      const newSquares = props.squares.slice();
+      newSquares[index] = props.status;
 
-    const newSquares = props.squares.slice();
-    newSquares[index] = props.status;
-
-    props.onPlay(newSquares);
-  }
-
-  function calculateWinner(squares) {
-    const lines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6]
-    ];
-
-    for (let i = 0; i < lines.length; i++) {
-      const [a, b, c] = lines[i];
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
-      }
+      props.onPlay(newSquares);
     }
-    return null;
-  }
 
-  const winner = calculateWinner(props.squares);
-  let gameStatus;
-  if (winner) {
-    gameStatus = `Winner: ${winner}`;
-  } else {
-    gameStatus = `Next player: ${props.status}`;
-  }
+    function calculateWinner(squares) {
+      const lines = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+      ];
 
-  return (
-    <>
-      <h2 className="game-status">{gameStatus}</h2>
-      <div className="grid-container">
-        {props.squares.map((value, index) => (
-          <Square key={index} value={value} onClick={() => handleClick(index)} />
-        ))}
-      </div>
-    </>
-  );
+      for (let i = 0; i < lines.length; i++) {
+        const [a, b, c] = lines[i];
+        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+          return squares[a];
+        }
+      }
+      return null;
+    }
+
+    const winner = calculateWinner(props.squares);
+
+    return (
+      <>
+        <h2 className="game-status">{winner ? `Winner:` : `Next player:`} <span className={winner ? winner : props.status}>{winner ? winner : props.status}</span></h2>
+        <div className="grid-container">
+          {props.squares.map((value, index) => (
+            <Square
+              key={index}
+              value={value}
+              onClick={() => handleClick(index)}
+              classes={value ? value.toString() : `hoverable-square`}
+            />
+          ))}
+        </div>
+      </>
+    );
 }
 
 Board.propTypes = {
@@ -101,7 +100,7 @@ Board.propTypes = {
 
 function Square(props) {
   return (
-    <button className="grid-square" onClick={props.onClick}>
+    <button className={`grid-square ${props.classes}`} onClick={props.onClick}>
       {props.value}
     </button>
   )
@@ -110,4 +109,5 @@ function Square(props) {
 Square.propTypes = {
   value: PropTypes.string,
   onClick: PropTypes.func.isRequired,
+  classes: PropTypes.string,
 };
