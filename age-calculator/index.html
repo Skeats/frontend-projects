@@ -24,7 +24,7 @@
                 let current = DateTime.now();
                 let birthDate = DateTime.fromISO(document.getElementById("birth-date").value);
 
-                document.getElementById("age-display").innerHTML = "You are: <b>" + current.diff(birthDate, ['years', 'months', 'days']).toHuman() + "</b> old.";
+                document.getElementById("age-display").innerHTML = "You are: <b>" + current.diff(birthDate, ['years', 'months', 'days', 'hours', 'minutes', 'seconds']).toHuman() + "</b> old.";
             }
         </script>
     </body>
