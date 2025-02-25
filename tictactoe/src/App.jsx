@@ -74,10 +74,19 @@ function Board(props) {
     }
 
     const winner = calculateWinner(props.squares);
+    const isDraw = !(props.squares.includes(null));
+    let statusText;
+    if (winner) {
+      statusText = <>Winner: <span className={winner}>{winner}</span></>;
+    } else if (isDraw) {
+      statusText = <>Draw!</>;
+    } else {
+      statusText = <>Next player: <span className={props.status}>{props.status}</span></>;
+    }
 
     return (
       <>
-        <h2 className="game-status">{winner ? `Winner:` : `Next player:`} <span className={winner ? winner : props.status}>{winner ? winner : props.status}</span></h2>
+        <h2 className="game-status">{statusText}</h2>
         <div className="grid-container">
           {props.squares.map((value, index) => (
             <Square
@@ -101,7 +110,7 @@ Board.propTypes = {
 function Square(props) {
   return (
     <button className={`grid-square ${props.classes}`} onClick={props.onClick}>
-      {props.value}
+      <span>{props.value}</span>
     </button>
   )
 }
