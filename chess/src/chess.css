@@ -1,0 +1,15 @@
+.chess-board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    margin: auto;
+    width: 500px;
+    height: 500px;
+    background-color: aquamarine;
+    padding: 20px;
+}
+
+.chess-square {
+    background-color: white;
+    border: 1px solid black;
+}
