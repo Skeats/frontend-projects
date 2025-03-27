@@ -1,15 +1,104 @@
+:root {
+    --chess-board-size: 650px;
+    --light-square-color: #f0d9b5;
+    --dark-square-color: #b58863;
+}
+
 .chess-board {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     grid-template-rows: repeat(8, 1fr);
-    margin: auto;
-    width: 500px;
-    height: 500px;
-    background-color: aquamarine;
-    padding: 20px;
+    width: var(--chess-board-size);
+    aspect-ratio: 1;
 }
 
 .chess-square {
-    background-color: white;
-    border: 1px solid black;
+    position: relative;
+}
+
+.chess-square.WHITE {
+    background-color: var(--light-square-color);
+}
+
+.chess-square.BLACK {
+    background-color: var(--dark-square-color);
+}
+
+/* Chess Piece Sprites */
+
+.chess-piece {
+    width: 100%;
+    height: 100%;
+    background-size: 600%;
+    background-repeat: no-repeat;
+    background-image: url('./assets/Chess_Pieces_Sprite.svg');
+    background-clip: content-box;
+    background-position-x: 100px;
+    background-position-y: 100px;
+}
+
+/* Styles for the selected chess piece */
+.held-tile {
+    background-color: #e2cd55 !important;
+}
+
+.last-move-tile {
+    background-color: #fdea7d !important;
+}
+
+.highlighter {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 25%;
+    aspect-ratio: 1;
+    margin: auto;
+    pointer-events: none;
+}
+
+.moveable-tile {
+    background-color: #5c5c5c79;
+    border-radius:100%;
+    -webkit-border-radius:100%;
+    -moz-border-radius:100%;
+    -ms-border-radius:100%;
+    -o-border-radius:100%;
+}
+
+.side-b, .side-w {
+    cursor: pointer;
+}
+
+.side-w {
+    background-position-y: top;
+}
+
+.side-b {
+    background-position-y: bottom;
+}
+
+/* Styles for each individual piece */
+.sprite-K {
+    background-position-x: 0%;
+}
+
+.sprite-Q {
+    background-position-x: 20%;
+}
+
+.sprite-B {
+    background-position-x: 40%;
+}
+
+.sprite-N {
+    background-position-x: 60%;
+}
+
+.sprite-R {
+    background-position-x: 80%;
+}
+
+.sprite-P {
+    background-position-x: 100%;
 }
