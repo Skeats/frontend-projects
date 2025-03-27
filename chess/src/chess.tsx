@@ -31,6 +31,7 @@ enum LittleEndianNotation {
 }
 
 const startingBoardPosition: string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+const testPosition: string = "q2pP2q/8/8/r6R/b2kK2B/8/8/Q2pP2Q w - - 0 1"
 
 // Exported component
 export function Chess() {
@@ -45,7 +46,7 @@ export function Chess() {
 }
 
 function Board({ activePlayer, flipActivePlayer }: { activePlayer: Players, flipActivePlayer: Function }) {
-    let [board, setBoard] = useState<Array<Array<Players | Pieces>>>(FENInterpreter(startingBoardPosition));
+    let [board, setBoard] = useState<Array<Array<Players | Pieces>>>(FENInterpreter(testPosition));
 
     let [heldPiece, setHeldPiece] = useState<Array<Players | Pieces>>([Players.NONE, Pieces.NONE]);
     let [heldPieceIndex, setHeldPieceIndex] = useState<number>(-1);
