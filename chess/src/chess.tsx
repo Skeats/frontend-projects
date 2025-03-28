@@ -1,6 +1,5 @@
 import { act, MouseEventHandler, useState } from 'react';
 import './chess.css';
-import { Dir } from 'fs';
 
 // Enum for pieces and sides
 enum Pieces {
@@ -30,7 +29,7 @@ enum LittleEndianNotation {
     a1, b1, c1, d1, e1, f1, g1, h1
 }
 
-const startingBoardPosition: string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+const startingBoardPosition: string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const testPosition: string = "q2pP2q/8/8/r6R/b2kK2B/8/8/Q2pP2Q w - - 0 1"
 
 // Exported component
@@ -46,7 +45,7 @@ export function Chess() {
 }
 
 function Board({ activePlayer, flipActivePlayer }: { activePlayer: Players, flipActivePlayer: Function }) {
-    let [board, setBoard] = useState<Array<Array<Players | Pieces>>>(FENInterpreter(testPosition));
+    let [board, setBoard] = useState<Array<Array<Players | Pieces>>>(FENInterpreter(startingBoardPosition));
 
     let [heldPiece, setHeldPiece] = useState<Array<Players | Pieces>>([Players.NONE, Pieces.NONE]);
     let [heldPieceIndex, setHeldPieceIndex] = useState<number>(-1);
@@ -57,7 +56,7 @@ function Board({ activePlayer, flipActivePlayer }: { activePlayer: Players, flip
     function handleClickEvent(index: number) {
 
         // If no piece is held, and the clicked square is not empty, pick up the piece
-        if (heldPiece[1] == Pieces.NONE) {
+        if (heldPiece[1] == Pieces.NONE || board[index][0] == activePlayer) {
             if (board[index][1] != Pieces.NONE && board[index][0] == activePlayer) {
                 // Pick up piece
                 console.log("Picking up " + board[index] + " at " + index);
@@ -146,11 +145,11 @@ function calculateLegalMoves(piece: Array<Players | Pieces>, index: number, boar
             }
 
             // Check if the pawn can capture pieces diagonally
-            if (index % 8 != 0 && board[index + 7 * direction][1] != Pieces.NONE && board[index + 7 * direction][0] != piece[0]) {
+            if (index % 8 != 7 && board[index + 7 * direction][1] != Pieces.NONE && board[index + 7 * direction][0] != piece[0]) {
                 legalMoves.push(index + 7 * direction);
             }
 
-            if (index % 8 != 7 && board[index + 9 * direction][1] != Pieces.NONE && board[index + 9 * direction][0] != piece[0]) {
+            if (index % 8 != 0 && board[index + 9 * direction][1] != Pieces.NONE && board[index + 9 * direction][0] != piece[0]) {
                 legalMoves.push(index + 9 * direction);
             }
             break;
@@ -226,6 +225,8 @@ function calculateLegalMoves(piece: Array<Players | Pieces>, index: number, boar
 }
 
 function calculateMovementLine(legalMoves: number[], index: number, direction: number[], color: any, board: Array<Array<Players | Pieces>>) {
+    if ((index % 8 == 0 && direction[1] == -1) || (index % 8 == 7 && direction[1] == 1)) return legalMoves;
+    
     index += direction[0] * 8 + direction[1];
 
     if (index < 0 || index > 63) {

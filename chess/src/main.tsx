@@ -8,7 +8,8 @@ createRoot(document.getElementById('root')!).render(
     <Chess />
     <h2>TODO:</h2>
     <ul>
-      <li>Fix bug where sliding pieces will teleport when on the edge of the board</li>
+      <li>Fix but where pawns can capture across the board</li>
+      <li>Fix bug where knights can move across the board</li>
       <li>Add check, checkmate conditions</li>
       <li>Add castling</li>
       <li>Add en passant</li>
