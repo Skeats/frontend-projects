@@ -13,6 +13,8 @@ createRoot(document.getElementById('root')!).render(
       <li>Make a system that will show the number of possible solves</li>
       <li>fix the win condition so that any possible solve will win</li>
       <li>Add button to show and hide the timer</li>
+      <li>Add instructions</li>
+      <li>Add seed for solve randomizer</li>
     </ul>
   </StrictMode>,
 )
