@@ -1,0 +1,31 @@
+:root {
+  /* Colors */
+  --background-color-dark: #3a3547;
+  --text-color-dark: #eeeeee;
+
+  --background-color-light: #f3e4c5;
+  --text-color-light: #3a3547;
+
+  /* Front Facing Variables */
+  --background-color: var(--background-color-dark);
+  --text-color: var(--text-color-dark);
+  --accent-color: #f8b363;
+
+  margin: 0;
+  padding: 0;
+
+  color-scheme: light dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background-color: var(--background-color-light);
+    --text-color: var(--text-color-light);
+  }
+}

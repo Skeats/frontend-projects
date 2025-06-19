@@ -1,0 +1,166 @@
+@import url("https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap");
+
+.nonagram-game-wrapper {
+  --nonagram-size: 5; /* Default size, can be changed dynamically */
+  --nonagram-square-size: 75px; /* Size of each square */
+
+  /* Colors */
+  --nonagram-game-color-dark: #24242b; /* Default background color */
+  --nonagram-board-color-dark: #372841; /* Default background color */
+  --nonagram-square-color-dark: #513b6b; /* Default square color */
+  --nonagram-accent-color-dark: #f8b363; /* Accent color for filled squares */
+
+  /* Light mode colors */
+  --nonagram-game-color-light: #d4c6a8; /* Default background color */
+  --nonagram-board-color-light: #eed9ae; /* Default background color */
+  --nonagram-square-color-light: #e0c790; /* Default square color */
+  --nonagram-accent-color-light: #f8b363; /* Accent color for filled squares */
+
+  background-color: var(--nonagram-game-color-dark);
+  width: fit-content;
+  margin: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 1.5rem;
+  -webkit-border-radius: 1.5rem;
+  -moz-border-radius: 1.5rem;
+  -ms-border-radius: 1.5rem;
+  -o-border-radius: 1.5rem;
+  font-family: "Comfortaa", sans-serif;
+  font-optical-sizing: auto;
+  text-align: center;
+}
+
+.nonagram-game {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Nonagram Controls */
+.nonagram-controls {
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.nonagram-timer {
+  font-size: 2rem;
+}
+
+.nonagram-control-button {
+  background-color: var(--nonagram-accent-color-dark);
+  background: linear-gradient(to top, var(--nonagram-board-color-dark), var(--nonagram-square-color-dark));
+  border: none;
+  padding: 10px 20px;
+  border-radius: 1.2rem;
+  cursor: pointer;
+  font-size: 1rem;
+  margin: 5px;
+  -webkit-border-radius: 1.2rem;
+  -moz-border-radius: 1.2rem;
+  -ms-border-radius: 1.2rem;
+  -o-border-radius: 1.2rem;
+}
+
+.nonagram-board {
+  display: grid;
+  grid-template-columns: auto repeat(var(--nonagram-size), var(--nonagram-square-size));
+  grid-template-rows: auto repeat(var(--nonagram-size), var(--nonagram-square-size));
+  gap: 5px;
+  width: fit-content;
+  height: fit-content;
+  background-color: var(--nonagram-board-color-dark);
+  padding: 10px;
+  border-radius: 10px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+}
+
+/* Nonagram Square Styles */
+.nonagram-square {
+  aspect-ratio: 1;
+  width: var(--nonagram-square-size);
+  height: var(--nonagram-square-size);
+  border-radius: 10px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  cursor: pointer;
+  background-color: var(--nonagram-square-color-dark);
+}
+
+.nonagram-square-filled {
+  background-color: var(--nonagram-accent-color-dark);
+}
+
+.nonagram-square svg {
+  width: 100%;
+  height: 100%;
+  fill: var(--text-color);
+  margin: auto;
+  visibility: hidden;
+}
+
+.nonagram-square-crossed svg {
+  visibility: visible;
+}
+
+.nonagram-square-disabled svg {
+  visibility: visible;
+}
+
+/* Nonagram Label Styles */
+.nonagram-row-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nonagram-column-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nonagram-label p {
+  margin: 2px;
+}
+
+/*Media Queries for Responsiveness */
+@media (max-width: 600px) {
+  .nonagram-game-wrapper {
+    --nonagram-square-size: 50px; /* Smaller square size for smaller screens */
+  }
+
+  .nonagram-game {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  #nonagram-game-wrapper {
+    background-color: var(--nonagram-game-color-light);
+  }
+
+  .nonagram-board {
+    background-color: var(--nonagram-board-color-light);
+  }
+
+  .nonagram-square {
+    background-color: var(--nonagram-square-color-light);
+  }
+
+  .nonagram-square-filled {
+    background-color: var(--nonagram-accent-color-light);
+  }
+}
