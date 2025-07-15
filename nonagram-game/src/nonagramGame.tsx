@@ -1,4 +1,5 @@
 import { useState, type MouseEventHandler } from "react";
+import React from "react";
 import "./nonagramGame.css";
 
 const SquareState = {
@@ -47,13 +48,15 @@ export default function NonagramGame() {
 
     for (let i = 0; i < gridSize; i++) {
       if (isColumnComplete(i, gridSize, newPuzzleState, solutionState)) {
-        getSquaresInColumn(i % gridSize, gridSize).forEach((index) => {
+        console.log(`Column ${i} is complete. Current state: ${newPuzzleState}, solution state: ${solutionState}`);
+        getSquaresInColumn(i, gridSize).forEach((index) => {
           if (newPuzzleState[index] === SquareState.OPEN) {
             newPuzzleState[index] = SquareState.DISABLED;
           }
         });
       }
       if (isRowComplete(i, gridSize, newPuzzleState, solutionState)) {
+        console.log(`Row ${i} is complete. Current state: ${newPuzzleState}, solution state: ${solutionState}`);
         getSquaresInRow(i, gridSize).forEach((index) => {
           if (newPuzzleState[index] === SquareState.OPEN) {
             newPuzzleState[index] = SquareState.DISABLED;
@@ -211,7 +214,7 @@ function Board(
 
       {/* Column labels */}
       {Array.from({ length: gridSize }, (_, index) => (
-        <div className="nonagram-label nonagram-column-label" id={`nonagram-column-${index}`}>
+        <div key={`row-${index}`} className="nonagram-label nonagram-column-label" id={`nonagram-column-${index}`}>
           {calculateColumnHint(index, gridSize, solutionState).map((hint, i) => (
             <p key={i} className="nonagram-hint">
               {hint}
@@ -221,18 +224,18 @@ function Board(
       ))}
 
       {Array.from({ length: gridSize * gridSize }, (_, index) => (
-        <>
+        <React.Fragment key={`group-${index}`}>
           {index % gridSize == 0 ? (
-            <div className="nonagram-label nonagram-row-label" id={`nonagram-row-${index / gridSize}`}>
+            <div key={`col-${index}`} className="nonagram-label nonagram-row-label" id={`nonagram-row-${index / gridSize}`}>
               {calculateRowHint(Math.floor(index / gridSize), gridSize, solutionState).map((hint, i) => (
-                <p key={i} className="nonagram-hint">
+                <p key={`hint-${index}-${i}`} className="nonagram-hint">
                   {hint}
                 </p>
               ))}
             </div>
           ) : null}
-          <Square index={index} state={puzzleState[index]} onClick={onSquareClick} />
-        </>
+          <Square key={index} index={index} state={puzzleState[index]} onClick={onSquareClick} />
+        </React.Fragment>
       ))}
     </div>
   );
@@ -254,9 +257,9 @@ function Square({ index, state, onClick }: { index: number; state: string, onCli
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       >
         <line x1="18" y1="6" x2="6" y2="18" />
         <line x1="6" y1="6" x2="18" y2="18" />
@@ -292,6 +295,7 @@ function calculateColumnHint(column: number, gridSize: number, solutionState: st
   return calculateHint(columnSquares.map((_, index) => solutionState[index * gridSize + column]));
 }
 
+// Calculates the hints for a given set of squares, returning an array of counts of consecutive filled squares.
 function calculateHint(squares: string[]): number[] {
   const hints: number[] = [];
   let count = 0;
@@ -318,24 +322,33 @@ function calculateHint(squares: string[]): number[] {
   return hints;
 }
 
+// Returns whether the row is complete based on the filled squares in the board state compared to the solution state.
 function isRowComplete(row: number, gridSize: number, boardState: string[], solutionState: string[]): boolean {
   return calculateRowFilledCount(row, gridSize, boardState) >= calculateRowFilledCount(row, gridSize, solutionState)
 }
 
+// Returns whether the column is complete based on the filled squares in the board state compared to the solution state.
 function isColumnComplete(column: number, gridSize: number, boardState: string[], solutionState: string[]): boolean {
   return calculateColumnFilledCount(column, gridSize, boardState) >= calculateColumnFilledCount(column, gridSize, solutionState);
 }
 
+// Calculates the number of filled squares in a row based on the board state.
 function calculateRowFilledCount(row: number, gridSize: number, boardState: string[]): number {
   const rowSquares = getSquaresInRow(row, gridSize);
-  return rowSquares.filter(square => boardState[square] === SquareState.FILLED).length;
+  const filteredSquares = rowSquares.filter(square => boardState[square] === SquareState.FILLED).length;
+  console.log(`Row ${row} filled count: ${filteredSquares}`);
+  return filteredSquares;
 }
 
+// Calculates the number of filled squares in a column based on the board state.
 function calculateColumnFilledCount(column: number, gridSize: number, boardState: string[]): number {
   const columnSquares = getSquaresInColumn(column, gridSize);
-  return columnSquares.filter(square => boardState[square] === SquareState.FILLED).length;
+  const filteredSquares = columnSquares.filter(square => boardState[square] === SquareState.FILLED).length;
+  console.log(`Column ${column} filled count: ${filteredSquares}`);
+  return filteredSquares;
 }
 
+// Returns the indices of the squares in a given row.
 function getSquaresInRow(row: number, gridSize: number): number[] {
   const indices: number[] = [];
   for (let i = 0; i < gridSize; i++) {
@@ -344,6 +357,7 @@ function getSquaresInRow(row: number, gridSize: number): number[] {
   return indices;
 }
 
+// Returns the indices of the squares in a given column.
 function getSquaresInColumn(column: number, gridSize: number): number[] {
   const indices: number[] = [];
   for (let i = 0; i < gridSize; i++) {

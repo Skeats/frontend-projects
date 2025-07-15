@@ -15,6 +15,7 @@ createRoot(document.getElementById('root')!).render(
       <li>Add button to show and hide the timer</li>
       <li>Add instructions</li>
       <li>Add seed for solve randomizer</li>
+      <li>Add a toggle to show the solution</li>
     </ul>
   </StrictMode>,
 )
