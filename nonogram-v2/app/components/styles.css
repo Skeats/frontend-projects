@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@source inline("grid-cols-{5..25}");
+@source inline("grid-rows-{5..25}");
+@source inline("nth-last-[-n+{5..25}]:border-b-0!");
+@source inline("nth-[{5..25}n]:border-r-0!");
+
+@theme {
+    --color-nonogram-accent: #6eaf6c;
+    --color-nonogram-primary: #383838;
+    --color-nonogram-secondary: #5a5a5a;
+    --color-nonogram-tertiary: #696969;
+}
+
+.nonogram-row {
+    display: flex;
+    border-bottom: 1px solid var(--color-nonogram-secondary);
+}
+
+.nonogram-row:nth-child(5n) {
+    border-bottom: 2px solid var(--color-nonogram-tertiary);
+}
+
+.nonogram-row:last-child {
+    border-bottom: none;
+}
+
+.nonogram-cell {
+    border-right: 1px solid var(--color-nonogram-secondary);
+    cursor: pointer;
+    flex: 1;
+    aspect-ratio: 1;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+    -webkit-transition: all 0.2s ease;
+    -moz-transition: all 0.2s ease;
+    -ms-transition: all 0.2s ease;
+    -o-transition: all 0.2s ease;
+}
+
+.nonogram-cell:hover {
+    background-color: #eee;
+}
+
+.nonogram-cell:nth-child(5n) {
+    border-right: 2px solid var(--color-nonogram-tertiary);
+}
+
+.nonogram-cell:last-child {
+    border-right: none;
+}
+
+.cell-empty {
+    background-color: var(--color-nonogram-primary);
+}
+
+.cell-filled {
+    background-color: var(--color-nonogram-accent);
+}
+
+.cell-crossed {
+    background-color: #ff0;
+}
+
+.cell-incorrect {
+    background-color: #f00;
+}
