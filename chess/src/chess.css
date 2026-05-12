@@ -2,13 +2,18 @@
     --chess-board-size: 650px;
     --light-square-color: #f0d9b5;
     --dark-square-color: #b58863;
+    --highlight-color: #ffe7619a;
+}
+
+.chess-game {
+  display: flex;
 }
 
 .chess-board {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(8, 1fr);
     width: var(--chess-board-size);
+    position: relative;
+    background-size: 100%;
+    background-image: url(https://upload.wikimedia.org/wikipedia/commons/d/d7/Chessboard480.svg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original);
     aspect-ratio: 1;
 }
 
@@ -27,23 +32,43 @@
 /* Chess Piece Sprites */
 
 .chess-piece {
-    width: 100%;
-    height: 100%;
+    width: 12.5%;
+    height: 12.5%;
+    position: absolute;
+    left: 0;
+    right: 0;
     background-size: 600%;
     background-repeat: no-repeat;
-    background-image: url('./assets/Chess_Pieces_Sprite.svg');
+    background-image: url("./assets/Chess_Pieces_Sprite.svg");
     background-clip: content-box;
     background-position-x: 100px;
     background-position-y: 100px;
+    z-index: 1;
+    cursor: grab;
+    transition: transform 0.5s;
 }
 
 /* Styles for the selected chess piece */
-.held-tile {
-    background-color: #e2cd55 !important;
+.held-tile::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 0;
+    background-color: var(--highlight-color) !important;
 }
 
-.last-move-tile {
-    background-color: #fdea7d !important;
+.last-move-tile::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 0;
+    background-color: var(--highlight-color) !important;
 }
 
 .highlighter {
@@ -58,47 +83,300 @@
 }
 
 .moveable-tile {
-    background-color: #5c5c5c79;
-    border-radius:100%;
-    -webkit-border-radius:100%;
-    -moz-border-radius:100%;
-    -ms-border-radius:100%;
-    -o-border-radius:100%;
+    background-color: #5c5c5c9f;
+    border-radius: 100%;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    -ms-border-radius: 100%;
+    -o-border-radius: 100%;
 }
 
-.side-b, .side-w {
-    cursor: pointer;
+.chess-sidebar {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-.side-w {
+.load-game-form {
+  display: flex;
+}
+
+.game-input-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.notation-picker {
+  display: flex;
+  flex-direction: column;
+}
+
+.radio-button {
+  background-color: #b58863;
+  margin: 1px;
+  border-radius: 5%;
+  height: 100%;
+  display: flex;
+  align-items: center; /* Vertically centers children */
+}
+
+.radio-button input[type="radio"] {
+
+}
+
+.radio-button label {
+  padding: 10px;
+}
+
+.radio-button:has(input[type="radio"]:checked) {
+  border: 2px solid #f0d9b5;
+}
+
+.side-0 {
     background-position-y: top;
 }
 
-.side-b {
+.side-8 {
     background-position-y: bottom;
 }
 
 /* Styles for each individual piece */
-.sprite-K {
+
+.sprite-1 {
+  background-position-x: 100%;
+}
+
+.sprite-2 {
+  background-position-x: 60%;
+}
+
+.sprite-3 {
+  background-position-x: 40%;
+}
+
+.sprite-4 {
+  background-position-x: 80%;
+}
+
+.sprite-5 {
+  background-position-x: 20%;
+}
+
+.sprite-6 {
     background-position-x: 0%;
 }
 
-.sprite-Q {
-    background-position-x: 20%;
+.square-a1 {
+    transform: translateY(700%);
 }
 
-.sprite-B {
-    background-position-x: 40%;
+.square-a2 {
+    transform: translateY(600%);
 }
 
-.sprite-N {
-    background-position-x: 60%;
+.square-a3 {
+    transform: translateY(500%);
 }
 
-.sprite-R {
-    background-position-x: 80%;
+.square-a4 {
+    transform: translateY(400%);
 }
 
-.sprite-P {
-    background-position-x: 100%;
+.square-a5 {
+    transform: translateY(300%);
+}
+
+.square-a6 {
+    transform: translateY(200%);
+}
+
+.square-a7 {
+    transform: translateY(100%);
+}
+
+.square-b1 {
+    transform: translate(100%, 700%);
+}
+
+.square-b2 {
+    transform: translate(100%, 600%);
+}
+
+.square-b3 {
+    transform: translate(100%, 500%);
+}
+
+.square-b4 {
+    transform: translate(100%, 400%);
+}
+
+.square-b5 {
+    transform: translate(100%, 300%);
+}
+
+.square-b6 {
+    transform: translate(100%, 200%);
+}
+
+.square-b7 {
+    transform: translate(100%, 100%);
+}
+
+.square-b8 {
+    transform: translate(100%, 0%);
+}
+
+.square-c1 {
+    transform: translate(200%, 700%);
+}
+
+.square-c2 {
+    transform: translate(200%, 600%);
+}
+
+.square-c3 {
+    transform: translate(200%, 500%);
+}
+
+.square-c4 {
+    transform: translate(200%, 400%);
+}
+
+.square-c5 {
+    transform: translate(200%, 300%);
+}
+
+.square-c6 {
+    transform: translate(200%, 200%);
+}
+
+.square-c7 {
+    transform: translate(200%, 100%);
+}
+
+.square-c8 {
+    transform: translate(200%, 0%);
+}
+
+.square-d1 {
+    transform: translate(300%, 700%);
+}
+.square-d2 {
+    transform: translate(300%, 600%);
+}
+.square-d3 {
+    transform: translate(300%, 500%);
+}
+.square-d4 {
+    transform: translate(300%, 400%);
+}
+.square-d5 {
+    transform: translate(300%, 300%);
+}
+.square-d6 {
+    transform: translate(300%, 200%);
+}
+.square-d7 {
+    transform: translate(300%, 100%);
+}
+.square-d8 {
+    transform: translate(300%, 0%);
+}
+
+.square-e1 {
+    transform: translate(400%, 700%);
+}
+.square-e2 {
+    transform: translate(400%, 600%);
+}
+.square-e3 {
+    transform: translate(400%, 500%);
+}
+.square-e4 {
+    transform: translate(400%, 400%);
+}
+.square-e5 {
+    transform: translate(400%, 300%);
+}
+.square-e6 {
+    transform: translate(400%, 200%);
+}
+.square-e7 {
+    transform: translate(400%, 100%);
+}
+.square-e8 {
+    transform: translate(400%, 0%);
+}
+
+.square-f1 {
+    transform: translate(500%, 700%);
+}
+.square-f2 {
+    transform: translate(500%, 600%);
+}
+.square-f3 {
+    transform: translate(500%, 500%);
+}
+.square-f4 {
+    transform: translate(500%, 400%);
+}
+.square-f5 {
+    transform: translate(500%, 300%);
+}
+.square-f6 {
+    transform: translate(500%, 200%);
+}
+.square-f7 {
+    transform: translate(500%, 100%);
+}
+.square-f8 {
+    transform: translate(500%, 0%);
+}
+
+.square-g1 {
+    transform: translate(600%, 700%);
+}
+.square-g2 {
+    transform: translate(600%, 600%);
+}
+.square-g3 {
+    transform: translate(600%, 500%);
+}
+.square-g4 {
+    transform: translate(600%, 400%);
+}
+.square-g5 {
+    transform: translate(600%, 300%);
+}
+.square-g6 {
+    transform: translate(600%, 200%);
+}
+.square-g7 {
+    transform: translate(600%, 100%);
+}
+.square-g8 {
+    transform: translate(600%, 0%);
+}
+
+.square-h1 {
+    transform: translate(700%, 700%);
+}
+.square-h2 {
+    transform: translate(700%, 600%);
+}
+.square-h3 {
+    transform: translate(700%, 500%);
+}
+.square-h4 {
+    transform: translate(700%, 400%);
+}
+.square-h5 {
+    transform: translate(700%, 300%);
+}
+.square-h6 {
+    transform: translate(700%, 200%);
+}
+.square-h7 {
+    transform: translate(700%, 100%);
+}
+.square-h8 {
+    transform: translate(700%, 0%);
 }
