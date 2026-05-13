@@ -1,7 +1,7 @@
 import { Bitboard } from "./bitboard";
 import { ChessBoard } from "./chessBoard";
 import { Piece } from "./chessPiece";
-import { directionOffsets, knightJumpOffsets, Pieces, PieceTypes, Players } from "./chessUtils";
+import { directionOffsets, isOppositeColor, knightJumpOffsets, Pieces, PieceTypes, Players } from "./chessUtils";
 
 export class StaticMoveData {
     public readonly numSquaresToEdge: number[][] = [];
@@ -78,6 +78,9 @@ export const staticMoveData = new StaticMoveData();
 export function generateMoves(board: ChessBoard): Move[] {
     let moves: Move[] = [];
 
+    moves.push(...generateKingMoves(board));
+    moves.push(...generateKnightMoves(board));
+
     for (const piece of board.getPieces()) {
         if (piece.isRealPiece() && piece.getColor() === board.getActivePlayer()) {
             // If all of these conditions pass, then we want to generate moves for this piece
@@ -86,9 +89,6 @@ export function generateMoves(board: ChessBoard): Move[] {
                 case(PieceTypes.ROOK):
                 case(PieceTypes.QUEEN):
                     moves.push(...generateSlidingMoves(piece, board));
-                    break;
-                case(PieceTypes.KING):
-                    moves.push(...generateKingMoves(piece, board));
                     break;
                 case(PieceTypes.KNIGHT):
                     break;
@@ -129,30 +129,46 @@ function generateSlidingMoves(piece: Piece, board: ChessBoard): Move[] {
     return moves;
 }
 
-function generateKnightMoves(piece: Piece, board: ChessBoard): Move[] {
-    return [];
-}
-
-function generateKingMoves(piece: Piece, board: ChessBoard): Move[] {
+function generateKnightMoves(board: ChessBoard): Move[] {
     let moves: Move[] = []
 
-    // Include all pieces (including pieces of the opposite color) in the legal move mask, because we will go through moves that would capture a piece seperately
-    const legalMoveMask = board.getPiecePositionBitboard().not();
-    let kingMoves = Bitboard.fromIndices(...staticMoveData.kingMoves[piece.getPosition()]).and(legalMoveMask);
+    const activeColor: Players = board.getActivePlayer();
+    const activeColorBitboard = board.getColorPositionBitboard(activeColor);
+
+    const knights = board.getPiecePositionBitboard(PieceTypes.KNIGHT).and(activeColorBitboard);
+    const moveMask = activeColorBitboard.not();
+
+    while (knights.getBoard() != 0n)  {
+        const knightSquare = knights.getLowestSetBitIndex();
+        const moveSquares = Bitboard.fromIndices(...staticMoveData.knightMoves[knightSquare]).and(moveMask);
+        knights.setBit(knightSquare, false);
+
+        while (moveSquares.getBoard() != 0n) {
+            const targetSquare = moveSquares.getLowestSetBitIndex();
+            const targetPiece = board.getPieceAtIndex(targetSquare);
+            moveSquares.setBit(targetSquare, false);
+            moves.push(new Move(knightSquare, targetSquare, isOppositeColor(activeColor, targetPiece.getColor())));
+        }
+    }
+
+    return moves;
+}
+
+function generateKingMoves(board: ChessBoard): Move[] {
+    let moves: Move[] = []
+
+    const activeColor: Players = board.getActivePlayer();
+
+    const kingPosition: number = board.getPiecePositionBitboard(PieceTypes.KING).and(board.getColorPositionBitboard(activeColor)).getLowestSetBitIndex();
+
+    const legalMoveMask = board.getColorPositionBitboard(activeColor).not();
+    let kingMoves = Bitboard.fromIndices(...staticMoveData.kingMoves[kingPosition]).and(legalMoveMask);
 
     while (kingMoves.getBoard() != 0n) {
         const targetSquare = kingMoves.getLowestSetBitIndex();
+        const targetPiece = board.getPieceAtIndex(targetSquare);
         kingMoves.setBit(targetSquare, false);
-        moves.push(new Move(piece.getPosition(), targetSquare));
-    }
-
-    const captureMoveMask = board.getColorPositionBitboard(piece.getColor() == Players.WHITE ? Players.BLACK : Players.WHITE);
-    let kingCaptures = Bitboard.fromIndices(...staticMoveData.kingMoves[piece.getPosition()]).and(captureMoveMask);
-
-    while (kingCaptures.getBoard() != 0n) {
-        const targetSquare = kingCaptures.getLowestSetBitIndex();
-        kingCaptures.setBit(targetSquare, false);
-        moves.push(new Move(piece.getPosition(), targetSquare, true));
+        moves.push(new Move(kingPosition, targetSquare, isOppositeColor(activeColor, targetPiece.getColor())));
     }
 
     return moves;

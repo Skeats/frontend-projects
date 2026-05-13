@@ -43,6 +43,11 @@ export enum boardSquares {
     a1, b1, c1, d1, e1, f1, g1, h1
 };
 
+export function isOppositeColor(color1: Players, color2: Players): boolean {
+    return (color1 == Players.BLACK && color2 == Players.WHITE) ||
+        (color1 == Players.WHITE && color2 == Players.BLACK);
+}
+
 export const littleEndianRegex: RegExp = /[a-h][1-8]/;
 export const startingBoardPosition: string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 

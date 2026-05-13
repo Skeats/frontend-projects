@@ -54,6 +54,18 @@ export class Bitboard {
         return Math.log2(Number(this.bitboard & -this.bitboard));
     }
 
+    public getIndices(): number[] {
+        let tempBoard: Bitboard = new Bitboard(this.bitboard);
+        const indices: number[] = [];
+
+        while (tempBoard.bitboard != 0n) {
+            indices.push(tempBoard.getLowestSetBitIndex())
+            tempBoard.setBit(indices[indices.length - 1], false);
+        }
+
+        return indices;
+    }
+
     // Generates a bitboard from a set of indices that indicate which bits should be on or off
     static fromIndices(...indices: number[]): Bitboard {
         const board: Bitboard = new Bitboard(0n);
