@@ -28,8 +28,6 @@ export class FEN {
                     board[pos++] = Pieces.NONE;
                 }
             }
-
-            console.log(`${pos} | ${e} | ${board[pos]}`)
         }
 
         return new ChessBoard(

@@ -1,34 +1,36 @@
+import { Bitboard } from "./bitboard";
 import { Piece } from "./chessPiece";
-import { Pieces, PieceTypes, Players } from "./chessUtils";
+import { directionOffsets, knightJumpOffsets, littleEndianRegex, Pieces, PieceTypes, Players } from "./chessUtils";
+import { Move } from "./moveGenerator";
 
 export class ChessBoard {
-    private board: Array<Pieces>;
+    private board: Pieces[];
     private activePlayer: Players = Players.WHITE;
     private castleRights: CastleRights;
     private enPassantindex: number;
     private halfMoveClock: number;
     private fullMoves: number;
 
-    private pieceList: Array<Piece> = [];
-    private whiteBoard: bigint = 0n;
-    private blackBoard: bigint = 0n;
-    private pawnBoard: bigint = 0n;
-    private knightBoard: bigint = 0n;
-    private rookBoard: bigint = 0n;
-    private bishopBoard: bigint = 0n;
-    private queenBoard: bigint = 0n;
-    private kingBoard: bigint = 0n;
+    private pieceList: Piece[] = [];
 
-    static readonly littleEndianRegex: RegExp = /[a-h][1-8]/;
-    static readonly startingBoardPosition: string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    private whiteBoard: Bitboard = new Bitboard(0n);
+    private blackBoard: Bitboard = new Bitboard(0n);
+    private pawnBoard: Bitboard = new Bitboard(0n);
+    private knightBoard: Bitboard = new Bitboard(0n);
+    private rookBoard: Bitboard = new Bitboard(0n);
+    private bishopBoard: Bitboard = new Bitboard(0n);
+    private queenBoard: Bitboard = new Bitboard(0n);
+    private kingBoard: Bitboard = new Bitboard(0n);
+
+    private boardUpdateCallbacks: Array<() => void> = [];
 
     public constructor(
-        board: Array<Pieces>,
+        board: Pieces[],
         activePlayer: Players,
         castleRights: CastleRights,
         enPassantindex: number,
         halfMoveClock: number,
-        fullMoves: number,
+        fullMoves: number
     ) {
         this.board = board;
         this.activePlayer = activePlayer;
@@ -39,25 +41,58 @@ export class ChessBoard {
         this.refreshBoard();
     }
 
-    public makeMove(): boolean {
-        return false
+    public makeMove(move: Move): boolean {
+        const startSquare: number = move.getStartSquare();
+        const endSquare: number = move.getEndSquare();
+
+        // Remove the captured piece if it's being captured
+        if (move.checkIsCapture()) {
+            this.removePieceAtIndex(endSquare);
+        }
+
+        // Update the piece's position in the pieceList
+        const pieceToMove: Piece = this.getPieceAtIndex(startSquare)
+        pieceToMove.changePosition(endSquare)
+
+        // Update the 8x8
+        this.board[endSquare] = this.board[startSquare];
+        this.board[startSquare] = Pieces.NONE;
+
+        // Swap active player
+        this.activePlayer = this.activePlayer == Players.WHITE ? Players.BLACK : Players.WHITE;
+
+        this.updateBoard();
+        console.log(this.pieceList)
+        return true;
     }
 
-    public unmakeMove(): boolean {
-        return false
+    public unmakeMove(move: Move): boolean {
+
+        this.updateBoard();
+        return false;
     }
 
-    public getBoard(): Array<Pieces> {
+    public getBoard(): Pieces[] {
         return this.board;
     }
 
-    public getPieces(): Array<Piece> {
+    public getPieces(): Piece[] {
         return this.pieceList;
+    }
+
+    public updateBoard() {
+        console.log("Updating board");
+        this.updatePositionBitboards();
+
+        // Send any update callbacks as necessary
+        for (const func of this.boardUpdateCallbacks) {
+            func.call(self);
+        }
     }
 
     public refreshBoard() {
         this.refreshPieceList();
-        this.calculatePositionBitboards();
+        this.updateBoard();
     }
 
     public getActivePlayer(): Players {
@@ -80,181 +115,120 @@ export class ChessBoard {
         return this.fullMoves;
     }
 
-    public getPieceAtIndex(index: number): Piece {
-        if (index < 0 || index > 63) return new Piece();
-
-        return Piece.fromInt(this.board[index], index);
+    public addBoardUpdateCallback(callback: () => void) {
+        this.boardUpdateCallbacks.push(callback);
     }
 
-    public getLegalMoves(piece: Piece) {
-        let legalMoves: Array<number> = [];
-
-        let position = piece.getPosition()
-
-        switch (piece.getType()) {
-            case Pieces.PAWN:
-                let direction = piece.getColor() === Players.WHITE ? -1 : 1;
-
-                // Check if the pawn can move forward one square
-                if (this.pieceLookupTable[position + 8 * direction].getType() == Pieces.NONE) {
-                    legalMoves.push(position + 8 * direction);
-                }
-
-                // Check if the pawn is in it's starting position/can move forward two squares
-                if (
-                    (piece.getColor() == Players.WHITE && position >= 48 && position <= 55) ||
-                    (piece.getColor() == Players.BLACK && position >= 8 && position <= 15)
-                ) {
-                    if (
-                        this.board[position + 16 * direction].getType() == Pieces.NONE &&
-                        this.board[position + 8 * direction].getType() == Pieces.NONE
-                    ) {
-                        legalMoves.push(position + 16 * direction);
-                    }
-                }
-
-                // Check if the pawn can capture pieces diagonally
-                if (
-                    position % 8 != 7 &&
-                    this.board[position + 7 * direction].getType() != Pieces.NONE &&
-                    this.board[position + 7 * direction].getColor() != piece.getColor()
-                ) {
-                    legalMoves.push(position + 7 * direction);
-                }
-
-                if (
-                    position % 8 != 0 &&
-                    this.board[position + 9 * direction].getType() != Pieces.NONE &&
-                    this.board[position + 9 * direction].getColor() != piece.getColor()
-                ) {
-                    legalMoves.push(position + 9 * direction);
-                }
-                break;
-            case Pieces.QUEEN:
-                this.calculateDiagonalLines(legalMoves, position, piece);
-                this.calculateHorizontalLines(legalMoves, position, piece);
-                break;
-            case Pieces.ROOK:
-                this.calculateHorizontalLines(legalMoves, position, piece);
-                break;
-            case Pieces.BISHOP:
-                this.calculateDiagonalLines(legalMoves, position, piece);
-                break;
-            case Pieces.KNIGHT:
-                for (let i = -2; i <= 2; i++) {
-                    for (let j = -2; j <= 2; j++) {
-                        if (Math.abs(i) + Math.abs(j) == 3) {
-                            let cellIndex = position + i * 8 + j;
-
-                            if (cellIndex < 0 || cellIndex > 63) {
-                                continue;
-                            }
-
-                            if (
-                                (position % 8 == 0 && j == -2) ||
-                                (position % 8 == 1 && j == -1) ||
-                                (position % 8 == 6 && j == 1) ||
-                                (position % 8 == 7 && j == 2)
-                            ) {
-                                continue;
-                            }
-
-                            if (this.board[cellIndex].getColor() != piece.getColor()) {
-                                legalMoves.push(cellIndex);
-                            }
-                        }
-                    }
-                }
-                break;
-            case Pieces.KING:
-                for (let i = -1; i <= 1; i++) {
-                    for (let j = -1; j <= 1; j++) {
-                        let cellIndex = position + i * 8 + j;
-
-                        if (cellIndex < 0 || cellIndex > 63) {
-                            continue;
-                        }
-
-                        if (
-                            (position % 8 == 0 && j == -1) ||
-                            (position % 8 == 7 && j == 1)
-                        ) {
-                            continue;
-                        }
-
-                        if (this.board[cellIndex].getColor() != piece.getColor()) {
-                            legalMoves.push(cellIndex);
-                        }
-                    }
-                }
-                break;
-            default:
-                return legalMoves;
-        }
-
-        return legalMoves;
+    public getBoardUpdateCallbacks(): Array<() => void> {
+        return this.boardUpdateCallbacks;
     }
 
-    private calculateDiagonalLines(legalMoves: number[], index: number, piece: Piece) {
-        this.calculateMovementLine(legalMoves, index, [1, 1], piece.getColor());
-        this.calculateMovementLine(legalMoves, index, [-1, -1], piece.getColor());
-        this.calculateMovementLine(legalMoves, index, [1, -1], piece.getColor());
-        this.calculateMovementLine(legalMoves, index, [-1, 1], piece.getColor());
+    public removeBoardUpdateCallback(callback: () => void): boolean {
+        return false;
     }
 
-    private calculateHorizontalLines(legalMoves: number[], index: number, piece: Piece) {
-        this.calculateMovementLine(legalMoves, index, [0, 1], piece.getColor());
-        this.calculateMovementLine(legalMoves, index, [0, -1], piece.getColor());
-        this.calculateMovementLine(legalMoves, index, [1, 0], piece.getColor());
-        this.calculateMovementLine(legalMoves, index, [-1, 0], piece.getColor());
-    }
-
-    private calculateMovementLine(
-        legalMoves: number[],
-        index: number,
-        direction: number[],
-        color: any,
-    ): number[] {
-
-        // Check if we are on the side of the board
-        if (
-            (index % 8 == 0 && direction[1] == -1) ||
-            (index % 8 == 7 && direction[1] == 1)
-        )
-            return legalMoves;
-
-        index += direction[0] * 8 + direction[1];
-
-        // Cap index to the board limits
-        if (index < 0 || index > 63) {
-            return legalMoves;
-        }
-
-        let currentPiece = this.board[index];
-
-        if (currentPiece.getColor() == color) {
-            return legalMoves; // If the color of the piece we ran into is the same as the piece that we are checking movement for, return
-        } else if (
-            currentPiece.getType() != Pieces.NONE ||
-            (index % 8 == 0 && direction[1] == -1) ||
-            (index % 8 == 7 && direction[1] == 1)
-        ) {
-            legalMoves.push(index);
-            return legalMoves; // If the color is opposite, add the piece to capturable pieces and then return
+    public getPiecePositionBitboard(piece: PieceTypes | Pieces = Pieces.NONE): Bitboard {
+        if (piece in PieceTypes) {
+            switch(piece) {
+                case(PieceTypes.BISHOP):
+                    return this.bishopBoard;
+                case(PieceTypes.ROOK):
+                    return this.rookBoard;
+                case(PieceTypes.KNIGHT):
+                    return this.knightBoard;
+                case(PieceTypes.KING):
+                    return this.kingBoard;
+                case(PieceTypes.QUEEN):
+                    return this.queenBoard;
+                case(PieceTypes.PAWN):
+                    return this.pawnBoard;
+            }
         } else {
-            legalMoves.push(index);
-            return this.calculateMovementLine(
-                legalMoves,
-                index,
-                direction,
-                color,
-            ); // Call this function recursively
+            switch(piece) {
+                case(Pieces.WHITE_BISHOP):
+                    return this.bishopBoard.and(this.whiteBoard);
+                case(Pieces.WHITE_ROOK):
+                    return this.rookBoard.and(this.whiteBoard);
+                case(Pieces.WHITE_KNIGHT):
+                    return this.knightBoard.and(this.whiteBoard);
+                case(Pieces.WHITE_KING):
+                    return this.kingBoard.and(this.whiteBoard);
+                case(Pieces.WHITE_QUEEN):
+                    return this.queenBoard.and(this.whiteBoard);
+                case(Pieces.WHITE_PAWN):
+                    return this.pawnBoard.and(this.whiteBoard);
+                case(Pieces.BLACK_BISHOP):
+                    return this.bishopBoard.and(this.blackBoard);
+                case(Pieces.BLACK_ROOK):
+                    return this.rookBoard.and(this.blackBoard);
+                case(Pieces.BLACK_KNIGHT):
+                    return this.knightBoard.and(this.blackBoard);
+                case(Pieces.BLACK_KING):
+                    return this.kingBoard.and(this.blackBoard);
+                case(Pieces.BLACK_QUEEN):
+                    return this.queenBoard.and(this.blackBoard);
+                case(Pieces.BLACK_PAWN):
+                    return this.pawnBoard.and(this.blackBoard);
+            }
         }
+
+        return this.pawnBoard.or(this.bishopBoard).or(this.rookBoard).or(this.knightBoard).or(this.kingBoard).or(this.queenBoard);
+    }
+
+    public getColorPositionBitboard(color: Players): Bitboard {
+        if (color == Players.WHITE)
+            return this.whiteBoard;
+        else
+            return this.blackBoard;
+    }
+
+    public getPieceAtIndex(index: number): Piece {
+        // Check if there is a piece at the index provided
+        if (!this.hasPieceAtIndex(index))
+            return new Piece();
+
+        let cachedPiece = this.pieceList.find((value: Piece) => value.getPosition() == index);
+
+        // If the piece already exists in our pieceList, return that instead of creating a new one
+        if (cachedPiece instanceof Piece) {
+            return cachedPiece;
+        }
+
+        // Otherwise create a new piece and add that to the pieceList for future reference
+        let newPiece: Piece = Piece.fromInt(this.board[index], index, index)
+        this.pieceList.push(newPiece)
+
+        return newPiece;
+    }
+
+    public addPiece(piece: Pieces, index: number): boolean {
+        // Make sure we don't add a piece in a position that already has one
+        if (this.hasPieceAtIndex(index)) return false;
+
+        let newPiece: Piece = Piece.fromInt(piece, index, index);
+        this.pieceList.push(newPiece);
+        this.board[index] = piece;
+
+        this.updateBoard();
+        return true;
+    }
+
+    public removePieceAtIndex(index: number): Pieces {
+        this.pieceList = this.pieceList.filter((value: Piece) => value.getPosition() !== index);
+
+        const oldPiece: Pieces = this.board[index];
+        this.board[index] = Pieces.NONE;
+
+        this.updateBoard();
+        return oldPiece;
+    }
+
+    public hasPieceAtIndex(index: number): boolean {
+        return this.board[index] !== Pieces.NONE;
     }
 
     private refreshPieceList() {
         this.pieceList = [];
-
         for (const [index, square] of this.board.entries()) {
             if (square != Pieces.NONE) {
                 this.pieceList.push(Piece.fromInt(square, index, index))
@@ -262,45 +236,52 @@ export class ChessBoard {
         }
     }
 
-    private calculatePositionBitboards() {
+    private updatePositionBitboards() {
+        this.whiteBoard.clear();
+        this.blackBoard.clear();
+        this.pawnBoard.clear();
+        this.rookBoard.clear();
+        this.bishopBoard.clear();
+        this.knightBoard.clear();
+        this.queenBoard.clear();
+        this.kingBoard.clear();
+
         for (const piece of this.pieceList) {
             if (piece.getColor() == Players.WHITE) {
-                this.whiteBoard |= 1n << BigInt(piece.getPosition());
+                this.whiteBoard.setBit(piece.getPosition());
             } else {
-                this.blackBoard |= 1n << BigInt(piece.getPosition());
+                this.blackBoard.setBit(piece.getPosition());
             }
 
             switch (piece.getType()) {
                 case (PieceTypes.PAWN):
-                    this.pawnBoard |= 1n << BigInt(piece.getPosition());
+                    this.pawnBoard.setBit(piece.getPosition());
                     break;
                 case (PieceTypes.ROOK):
-                    this.rookBoard |= 1n << BigInt(piece.getPosition());
+                    this.rookBoard.setBit(piece.getPosition());
                     break;
                 case (PieceTypes.BISHOP):
-                    this.bishopBoard |= 1n << BigInt(piece.getPosition());
+                    this.bishopBoard.setBit(piece.getPosition());
                     break;
                 case (PieceTypes.KNIGHT):
-                    this.knightBoard |= 1n << BigInt(piece.getPosition());
+                    this.knightBoard.setBit(piece.getPosition());
                     break;
                 case (PieceTypes.KING):
-                    this.kingBoard |= 1n << BigInt(piece.getPosition());
+                    this.kingBoard.setBit(piece.getPosition());
                     break;
                 case (PieceTypes.QUEEN):
-                    this.queenBoard |= 1n << BigInt(piece.getPosition());
+                    this.queenBoard.setBit(piece.getPosition());
                     break;
             }
         }
     }
 
     static squareToIndex(square: string): number {
-        if (!ChessBoard.littleEndianRegex.test(square)) return -1; // Return an error if the string provided does not have a valid notated square
+        if (!littleEndianRegex.test(square)) return -1; // Return an error if the string provided does not have a valid notated square
 
         let trimString = square.trim();
 
-        return (
-            (trimString.charCodeAt(1) - 49) * 8 + (trimString.charCodeAt(0) - 97)
-        ); // 49 = 1, 97 = a
+        return (parseInt(trimString[1]) * 8 + (trimString.charCodeAt(0) - 'a'.charCodeAt(0)));
     }
 
     static indexToSquare(index: number): string {

@@ -17,72 +17,24 @@
     aspect-ratio: 1;
 }
 
-.chess-square {
-    position: relative;
+.on-chess-grid  {
+  width: 12.5%;
+  height: 12.5%;
+  position: absolute;
+  left: 0;
+  right: 0;
 }
 
-.chess-square.WHITE {
-    background-color: var(--light-square-color);
+.chess-hint {
+  display: grid;
+  place-items: center;
+  z-index: 1;
+  cursor: pointer;
 }
 
-.chess-square.BLACK {
-    background-color: var(--dark-square-color);
-}
-
-/* Chess Piece Sprites */
-
-.chess-piece {
-    width: 12.5%;
-    height: 12.5%;
-    position: absolute;
-    left: 0;
-    right: 0;
-    background-size: 600%;
-    background-repeat: no-repeat;
-    background-image: url("./assets/Chess_Pieces_Sprite.svg");
-    background-clip: content-box;
-    background-position-x: 100px;
-    background-position-y: 100px;
-    z-index: 1;
-    cursor: grab;
-    transition: transform 0.5s;
-}
-
-/* Styles for the selected chess piece */
-.held-tile::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 0;
-    background-color: var(--highlight-color) !important;
-}
-
-.last-move-tile::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 0;
-    background-color: var(--highlight-color) !important;
-}
-
-.highlighter {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+.chess-hint-dot {
     width: 25%;
-    aspect-ratio: 1;
-    margin: auto;
-    pointer-events: none;
-}
-
-.moveable-tile {
+    height: 25%;
     background-color: #5c5c5c9f;
     border-radius: 100%;
     -webkit-border-radius: 100%;
@@ -90,6 +42,21 @@
     -ms-border-radius: 100%;
     -o-border-radius: 100%;
 }
+
+.chess-hint-circle {
+    width: 100%;
+    height: 100%;
+    border: 6px solid #5c5c5c9f;
+    box-sizing: border-box;
+    border-radius: 100%;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    -ms-border-radius: 100%;
+    -o-border-radius: 100%;
+}
+
+
+/* Sidebar Styles */
 
 .chess-sidebar {
   font-family: Arial, Helvetica, sans-serif;
@@ -130,39 +97,57 @@
   border: 2px solid #f0d9b5;
 }
 
+
+/* Chess Piece Sprites */
+
+.chess-piece {
+    background-size: 600%;
+    background-repeat: no-repeat;
+    background-image: url("./assets/Chess_Pieces_Sprite.svg");
+    background-clip: content-box;
+    background-position-x: 100px;
+    background-position-y: 100px;
+    z-index: 1;
+    cursor: grab;
+    transition: transform 0.25s;
+}
+
 .side-0 {
     background-position-y: top;
 }
 
-.side-8 {
+.side-6 {
     background-position-y: bottom;
 }
 
 /* Styles for each individual piece */
 
-.sprite-1 {
+.sprite-p {
   background-position-x: 100%;
 }
 
-.sprite-2 {
+.sprite-n {
   background-position-x: 60%;
 }
 
-.sprite-3 {
+.sprite-b {
   background-position-x: 40%;
 }
 
-.sprite-4 {
+.sprite-r {
   background-position-x: 80%;
 }
 
-.sprite-5 {
+.sprite-q {
   background-position-x: 20%;
 }
 
-.sprite-6 {
+.sprite-k {
     background-position-x: 0%;
 }
+
+
+/* Square Transforms */
 
 .square-a1 {
     transform: translateY(700%);

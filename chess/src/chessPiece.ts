@@ -22,6 +22,10 @@ export class Piece {
         return this.position;
     }
 
+    public changePosition(index: number) {
+        this.position = index;
+    }
+
     public getID(): number {
         return this.pieceID;
     }
@@ -36,6 +40,41 @@ export class Piece {
 
     public getAsInt(): Pieces {
         return this.pieceType + this.color;
+    }
+
+    public isRealPiece(): boolean {
+        return this.pieceType !== PieceTypes.NONE;
+    }
+
+    public getAsLetter(): string {
+        let letter: string = "";
+        switch(this.pieceType) {
+            case(PieceTypes.PAWN):
+                letter = "p";
+                break;
+            case(PieceTypes.KNIGHT):
+                letter = "n";
+                break;
+            case(PieceTypes.BISHOP):
+                letter = "b";
+                break;
+            case(PieceTypes.ROOK):
+                letter = "r";
+                break;
+            case(PieceTypes.KING):
+                letter = "k";
+                break;
+            case(PieceTypes.QUEEN):
+                letter = "q";
+                break;
+            default:
+                letter = "-";
+        }
+
+        if (this.getColor() == Players.WHITE)
+            letter = letter.toUpperCase();
+
+        return letter
     }
 
     static pieceTypeFromLetter(letter: string): PieceTypes {
@@ -63,10 +102,15 @@ export class Piece {
         return Piece.pieceTypeFromLetter(letter) + Players.BLACK;
     }
 
-    static fromInt(piece: Pieces, position: number, pieceID: number = 0): Piece {
+    static getColorFromInt(piece: Pieces): Players {
         if (piece > Players.BLACK)
-            return new Piece(piece - Players.BLACK, position, Players.BLACK, pieceID)
-        else
-            return new Piece(piece.valueOf(), position, Players.WHITE, pieceID)
+            return Players.BLACK;
+        return Players.WHITE;
+    }
+
+    static fromInt(piece: Pieces, position: number, pieceID: number = 0): Piece {
+        const color: Players = this.getColorFromInt(piece);
+
+        return new Piece(piece - color, position, color, pieceID)
     }
 }
