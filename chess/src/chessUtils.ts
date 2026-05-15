@@ -41,15 +41,22 @@ export enum boardSquares {
     a3, b3, c3, d3, e3, f3, g3, h3,
     a2, b2, c2, d2, e2, f2, g2, h2,
     a1, b1, c1, d1, e1, f1, g1, h1
-};
+}
 
 export function isOppositeColor(color1: Players, color2: Players): boolean {
-    return (color1 == Players.BLACK && color2 == Players.WHITE) ||
-        (color1 == Players.WHITE && color2 == Players.BLACK);
+    return (
+        (color1 == Players.BLACK && color2 == Players.WHITE) ||
+        (color1 == Players.WHITE && color2 == Players.BLACK)
+    );
+}
+
+export function getOppositeColor(color: Players): Players {
+    return color == Players.WHITE ? Players.BLACK : Players.WHITE;
 }
 
 export const littleEndianRegex: RegExp = /[a-h][1-8]/;
-export const startingBoardPosition: string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+export const startingBoardPosition: string =
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 export const directionOffsets = [8, -8, 1, -1, 9, -7, -9, 7];
-export const knightJumpOffsets = [ 15, 17, -17, -15, 10, -6, 6, -10 ];
+export const knightJumpOffsets = [15, 17, -17, -15, 10, -6, 6, -10];

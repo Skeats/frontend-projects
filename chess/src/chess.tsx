@@ -3,6 +3,7 @@ import {
     Dispatch,
     FormEventHandler,
     MouseEventHandler,
+    ReactNode,
     SetStateAction,
     useRef,
     useState,
@@ -12,7 +13,9 @@ import { ChessBoard } from "./chessBoard";
 import { FEN } from "./FEN";
 import { Piece } from "./chessPiece";
 import { startingBoardPosition } from "./chessUtils";
-import { generateMoves, Move } from "./moveGenerator";
+import { MoveGenerator, Move } from "./moveGenerator";
+import { PGN } from "./PGN";
+import { UCI } from "./UCI";
 
 enum ControlMode {
     PLAYER,
@@ -22,10 +25,13 @@ enum ControlMode {
 const highlightColorYellow = "#ffe7619a";
 const highlightColorRed = "#ff2f2fa0";
 
+const moveSound = new Audio("https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3");
+const captureSound = new Audio("https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/capture.mp3");
+
 // Exported component
 export function Chess() {
     const [chessBoard, setChessBoard] = useState<ChessBoard>(
-        FEN.interpret(startingBoardPosition),
+        ChessBoard.startingPosition(),
     );
     const [whiteControlMode, setWhiteControlMode] = useState<ControlMode>(
         ControlMode.PLAYER,
@@ -33,14 +39,17 @@ export function Chess() {
     const [blackControlMode, setBlackControlMode] = useState<ControlMode>(
         ControlMode.PLAYER,
     );
+    const moveGenerator = new MoveGenerator();
 
     chessBoard.addBoardUpdateCallback(() => setChessBoard(chessBoard));
+    const engine = new UCI("/home/skeatsies/.local/share/org.encroissant.app/engines/stockfish/stockfish-ubuntu-x86-64-avx2");
 
     return (
         <div className="chess-game">
             <Board
                 chessBoard={chessBoard}
                 setChessBoard={setChessBoard}
+                moveGenerator={moveGenerator}
                 whiteControlMode={whiteControlMode}
                 blackControlMode={blackControlMode}
             />
@@ -71,12 +80,45 @@ function SideBar({
     blackControlMode: ControlMode;
     setBlackControlMode: Dispatch<SetStateAction<ControlMode>>;
 }) {
+    let activeTab: string = "";
+
     return (
         <div className="chess-sidebar">
-            <LoadGameForm
-                chessBoard={chessBoard}
-                setChessBoard={setChessBoard}
-            />
+            <div className="sidebar-tab-bar">
+                <SidebarTab tabName="Setup" activeTab={activeTab} />
+            </div>
+            <SidebarTabContent active={activeTab == "Setup"}>
+                <LoadGameForm
+                    chessBoard={chessBoard}
+                    setChessBoard={setChessBoard}
+                />
+            </SidebarTabContent>
+        </div>
+    );
+}
+
+function SidebarTab({
+    tabName,
+    activeTab
+}: {
+    tabName: string
+    activeTab: string
+}) {
+    return (
+        <button onClick={() => activeTab = tabName} className="sidebar-tab">{tabName}</button>
+    )
+}
+
+function SidebarTabContent({
+    active,
+    children
+}: {
+    active: boolean
+    children: ReactNode
+}) {
+    return (
+        <div className={`${active ? "sidebar-tab-content-active" : "sidebar-tab-content-inactive"}`}>
+            {children}
         </div>
     );
 }
@@ -95,9 +137,7 @@ function GameSetupForm({
     setWhiteControlMode: Dispatch<SetStateAction<ControlMode>>;
     blackControlMode: ControlMode;
     setBlackControlMode: Dispatch<SetStateAction<ControlMode>>;
-}) {
-
-}
+}) {}
 
 function LoadGameForm({
     chessBoard,
@@ -115,14 +155,17 @@ function LoadGameForm({
         // Trim whitespace for quality of life
         const cleanedString = data["game-string"].toString().trim();
 
-        if (data["notation-type"] == "fen")
-            if (FEN.isValid(cleanedString)) {
-                setChessBoard(FEN.interpret(cleanedString));
-                chessBoard.addBoardUpdateCallback(() =>
-                    setChessBoard(chessBoard),
-                );
-            } else alert("Invalid FEN string given.");
-        else alert("PGN Interpreting not yet implemented.");
+        if (FEN.isValid(cleanedString)) {
+            setChessBoard(FEN.interpret(cleanedString));
+            chessBoard.addBoardUpdateCallback(() =>
+                setChessBoard(chessBoard),
+            );
+        } else if (PGN.isValidPGN(cleanedString)) {
+            setChessBoard(PGN.interpret(cleanedString));
+            chessBoard.addBoardUpdateCallback(() =>
+                setChessBoard(chessBoard),
+            );
+        } else alert("Invalid string given.");
     }
 
     return (
@@ -131,31 +174,9 @@ function LoadGameForm({
                 <textarea
                     name="game-string"
                     placeholder="Enter a FEN/PGN string"
-                    rows={8}
-                    cols={40}
+                    rows={7}
                 />
                 <button type="submit">Load Game</button>
-            </div>
-            <div className="notation-picker">
-                <div className="radio-button">
-                    <input
-                        type="radio"
-                        id="fen"
-                        name="notation-type"
-                        value={"fen"}
-                        defaultChecked
-                    />
-                    <label htmlFor="fen">FEN</label>
-                </div>
-                <div className="radio-button">
-                    <input
-                        type="radio"
-                        id="pgn"
-                        name="notation-type"
-                        value={"pgn"}
-                    />
-                    <label htmlFor="pgn">PGN</label>
-                </div>
             </div>
         </form>
     );
@@ -164,11 +185,13 @@ function LoadGameForm({
 function Board({
     chessBoard,
     setChessBoard,
+    moveGenerator,
     whiteControlMode,
     blackControlMode,
 }: {
     chessBoard: ChessBoard;
     setChessBoard: Dispatch<SetStateAction<ChessBoard>>;
+    moveGenerator: MoveGenerator;
     whiteControlMode: ControlMode;
     blackControlMode: ControlMode;
 }) {
@@ -176,7 +199,9 @@ function Board({
     const [moveHints, setMoveHints] = useState<Array<Move>>([]);
 
     function onPieceClicked(index: number) {
-        const moves: Array<Move> = generateMoves(chessBoard).filter((value: Move) => value.getStartSquare() == index);
+        const moves: Array<Move> = moveGenerator
+            .generateMoves(chessBoard)
+            .filter((value: Move) => value.getStartSquare() == index);
 
         setMoveHints(moves);
 
@@ -197,14 +222,19 @@ function Board({
     function onMoveHintClicked(move: Move) {
         chessBoard.makeMove(move);
         setMoveHints([]);
+        if (move.checkIsCapture())
+            captureSound.play();
+        else
+            moveSound.play();
+        console.log(FEN.generate(chessBoard));
 
         // Filter out old highlight squares and non-selection highlights
         let newHighlights = highlights.filter(
             (value: HighlightData) =>
-                (value.index !== move.getStartSquare()) &&
-                (value.index !== move.getEndSquare()) &&
-                (value.type !== "move-start-square") &&
-                (value.type !== "move-end-square")
+                value.index !== move.getStartSquare() &&
+                value.index !== move.getEndSquare() &&
+                value.type !== "move-start-square" &&
+                value.type !== "move-end-square",
         );
         newHighlights.push({
             index: move.getStartSquare(),
@@ -287,7 +317,7 @@ function PieceSprite({
 }) {
     return (
         <div
-            className={`on-chess-grid chess-piece square-${ChessBoard.indexToSquare(piece.getPosition())} side-${piece.getColor()} sprite-${piece.getAsLetter().toLowerCase()}`}
+            className={`on-chess-grid chess-piece square-${ChessBoard.indexToSquare(piece.getPosition())} sprite-${piece.getColorAsLetter() + piece.getAsLetter().toUpperCase()}`}
             onClick={onClick}
         />
     );

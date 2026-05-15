@@ -9,7 +9,6 @@ createRoot(document.getElementById("root")!).render(
         <h2>TODO:</h2>
         <ul>
             <li>Fix but where pawns can capture across the board</li>
-            <li>Fix bug where knights can move across the board</li>
             <li>Add check, checkmate conditions</li>
             <li>Add castling</li>
             <li>Add en passant</li>

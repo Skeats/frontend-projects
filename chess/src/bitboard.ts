@@ -1,5 +1,4 @@
 export class Bitboard {
-
     private bitboard: bigint;
 
     public constructor(bitboard: bigint = 0n) {
@@ -15,35 +14,47 @@ export class Bitboard {
     }
 
     public getBit(index: number): boolean {
-        return(this.bitboard & (1n << BigInt(index))) !== 0n
+        return (this.bitboard & (1n << BigInt(index))) !== 0n;
     }
 
     public setBit(index: number, value: boolean = true) {
         if (value) {
-            this.bitboard |= (1n << BigInt(index));
+            this.bitboard |= 1n << BigInt(index);
         } else {
             this.bitboard &= ~(1n << BigInt(index));
         }
     }
 
     public toggleBit(index: number) {
-        this.bitboard ^= (1n << BigInt(index));
+        this.bitboard ^= 1n << BigInt(index);
     }
 
     public clear() {
         this.bitboard = 0n;
     }
 
-    public and(other: Bitboard): Bitboard {
-        return new Bitboard(this.bitboard & other.bitboard);
+    public and(other: Bitboard | bigint): Bitboard {
+        if (other instanceof Bitboard) {
+            return new Bitboard(this.bitboard & other.bitboard);
+        } else {
+            return new Bitboard(this.bitboard & other);
+        }
     }
 
-    public or(other: Bitboard): Bitboard {
-        return new Bitboard(this.bitboard | other.bitboard);
+    public or(other: Bitboard | bigint): Bitboard {
+        if (other instanceof Bitboard) {
+            return new Bitboard(this.bitboard | other.bitboard);
+        } else {
+            return new Bitboard(this.bitboard | other);
+        }
     }
 
-    public xor(other: Bitboard): Bitboard {
-        return new Bitboard(this.bitboard ^ other.bitboard);
+    public xor(other: Bitboard | bigint): Bitboard {
+        if (other instanceof Bitboard) {
+            return new Bitboard(this.bitboard ^ other.bitboard);
+        } else {
+            return new Bitboard(this.bitboard ^ other);
+        }
     }
 
     public not(): Bitboard {
@@ -59,7 +70,7 @@ export class Bitboard {
         const indices: number[] = [];
 
         while (tempBoard.bitboard != 0n) {
-            indices.push(tempBoard.getLowestSetBitIndex())
+            indices.push(tempBoard.getLowestSetBitIndex());
             tempBoard.setBit(indices[indices.length - 1], false);
         }
 

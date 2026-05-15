@@ -10,7 +10,7 @@ export class Piece {
         pieceType: PieceTypes = PieceTypes.NONE,
         position: number = -1,
         color: Players = Players.NONE,
-        pieceID: number = 0
+        pieceID: number = 0,
     ) {
         this.position = position;
         this.color = color;
@@ -46,50 +46,53 @@ export class Piece {
         return this.pieceType !== PieceTypes.NONE;
     }
 
+    public getColorAsLetter(): string {
+        return this.color == Players.WHITE ? "w" : "b";
+    }
+
     public getAsLetter(): string {
         let letter: string = "";
-        switch(this.pieceType) {
-            case(PieceTypes.PAWN):
+        switch (this.pieceType) {
+            case PieceTypes.PAWN:
                 letter = "p";
                 break;
-            case(PieceTypes.KNIGHT):
+            case PieceTypes.KNIGHT:
                 letter = "n";
                 break;
-            case(PieceTypes.BISHOP):
+            case PieceTypes.BISHOP:
                 letter = "b";
                 break;
-            case(PieceTypes.ROOK):
+            case PieceTypes.ROOK:
                 letter = "r";
                 break;
-            case(PieceTypes.KING):
+            case PieceTypes.KING:
                 letter = "k";
                 break;
-            case(PieceTypes.QUEEN):
+            case PieceTypes.QUEEN:
                 letter = "q";
                 break;
             default:
                 letter = "-";
         }
 
-        if (this.getColor() == Players.WHITE)
-            letter = letter.toUpperCase();
+        if (this.getColor() == Players.WHITE) letter = letter.toUpperCase();
 
-        return letter
+        return letter;
     }
 
     static pieceTypeFromLetter(letter: string): PieceTypes {
-        switch(letter.toLowerCase()) {
-            case("p"):
+        switch (letter.toLowerCase()) {
+            case "p":
                 return PieceTypes.PAWN;
-            case("n"):
+            case "n":
                 return PieceTypes.KNIGHT;
-            case("b"):
+            case "b":
                 return PieceTypes.BISHOP;
-            case("r"):
+            case "r":
                 return PieceTypes.ROOK;
-            case("k"):
+            case "k":
                 return PieceTypes.KING;
-            case("q"):
+            case "q":
                 return PieceTypes.QUEEN;
             default:
                 return PieceTypes.NONE;
@@ -103,14 +106,17 @@ export class Piece {
     }
 
     static getColorFromInt(piece: Pieces): Players {
-        if (piece > Players.BLACK)
-            return Players.BLACK;
+        if (piece > Players.BLACK) return Players.BLACK;
         return Players.WHITE;
     }
 
-    static fromInt(piece: Pieces, position: number, pieceID: number = 0): Piece {
+    static fromInt(
+        piece: Pieces,
+        position: number,
+        pieceID: number = 0,
+    ): Piece {
         const color: Players = this.getColorFromInt(piece);
 
-        return new Piece(piece - color, position, color, pieceID)
+        return new Piece(piece - color, position, color, pieceID);
     }
 }
